@@ -1,16 +1,16 @@
 let selectedArticles = [];
 let currentIndex = 0;
-let isRevealed = false;
+let revealedCount = 0;
 
-// サイドバー開閉（モバイル用）
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('overlay').classList.toggle('open');
+function openSidebar() {
+  document.getElementById('sidebar').style.display = 'flex';
+  document.getElementById('overlay').style.display = 'block';
 }
 function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('sidebar').style.display = 'none';
+  document.getElementById('overlay').style.display = 'none';
 }
+function toggleSidebar() { openSidebar(); }
 
 function buildSidebar() {
   const list = document.getElementById('chapter-list');
@@ -49,7 +49,6 @@ function buildSidebar() {
 
       btn.appendChild(cb);
       btn.appendChild(span);
-
       btn.addEventListener('click', () => {
         cb.checked = !cb.checked;
         updateSelection();
@@ -84,12 +83,19 @@ function clearAll() {
 function startPractice() {
   if (selectedArticles.length === 0) return;
   currentIndex = 0;
+  revealedCount = 0;
   closeSidebar();
-  showArticle(selectedArticles[currentIndex]);
+  renderArticle();
 }
 
-function showArticle(articleId) {
-  isRevealed = false;
+function getParagraphs(articleId) {
+  const article = ARTICLES[articleId];
+  if (!article) return [];
+  return Array.isArray(article.text) ? article.text : [article.text];
+}
+
+function renderArticle() {
+  const articleId = selectedArticles[currentIndex];
   const article = ARTICLES[articleId];
   const main = document.getElementById('main');
 
@@ -98,52 +104,64 @@ function showArticle(articleId) {
     return;
   }
 
+  const paragraphs = getParagraphs(articleId);
+  const totalArticles = selectedArticles.length;
+  const allRevealed = revealedCount >= paragraphs.length;
+
+  const titleText = articleId === 'preamble'
+    ? '前文'
+    : `第${articleId}条${article.title ? '　' + article.title : ''}`;
+
   // アクティブ表示
   document.querySelectorAll('.article-btn').forEach(b => b.classList.remove('active'));
   const activeBtn = document.querySelector(`.article-btn[data-id="${articleId}"]`);
   if (activeBtn) activeBtn.classList.add('active');
 
-  const total = selectedArticles.length;
-  const current = currentIndex + 1;
-  const titleText = articleId === 'preamble'
-    ? '前文'
-    : `第${articleId}条${article.title ? '　' + article.title : ''}`;
+  const paragraphsHtml = paragraphs.map((p, i) => {
+    const revealed = i < revealedCount;
+    return `<div class="para-block ${revealed ? 'para-revealed' : 'para-hidden'}">${p}</div>`;
+  }).join('');
 
-  const paragraphs = Array.isArray(article.text) ? article.text : [article.text];
-  const textHtml = paragraphs.map(p => `<p style="margin-bottom:1em;line-height:2.2;">${p}</p>`).join('');
+  let revealBtn;
+  if (allRevealed) {
+    revealBtn = `<button class="reveal-btn reveal-btn--done" disabled>全て表示済み ✓</button>`;
+  } else {
+    const label = paragraphs.length > 1
+      ? `${revealedCount + 1}行目を表示　(${revealedCount + 1} / ${paragraphs.length})`
+      : '表示する';
+    revealBtn = `<button class="reveal-btn" onclick="revealNext()">${label}</button>`;
+  }
 
   main.innerHTML = `
     <div class="practice-card">
-      ${total > 1 ? `<div class="progress">${current} / ${total}</div>` : ''}
+      ${totalArticles > 1 ? `<div class="progress">条文 ${currentIndex + 1} / ${totalArticles}</div>` : ''}
       <div class="article-number">${titleText}</div>
-      <div class="text-area">
-        <div class="hidden-text" id="article-text">${textHtml}</div>
-      </div>
-      <button class="reveal-btn" id="reveal-btn" onclick="toggleReveal()">条文を表示</button>
+      <div class="text-area">${paragraphsHtml}</div>
+      ${revealBtn}
       <div class="nav-btns">
         <button class="nav-btn" onclick="navigate(-1)" ${currentIndex === 0 ? 'disabled' : ''}>← 前の条文</button>
-        <button class="nav-btn" onclick="navigate(1)" ${currentIndex >= total - 1 ? 'disabled' : ''}>次の条文 →</button>
+        <button class="nav-btn" onclick="navigate(1)" ${currentIndex >= totalArticles - 1 ? 'disabled' : ''}>次の条文 →</button>
       </div>
     </div>
   `;
 
-  // ページ先頭へ
   main.scrollTo(0, 0);
 }
 
-function toggleReveal() {
-  isRevealed = !isRevealed;
-  document.getElementById('article-text').classList.toggle('revealed', isRevealed);
-  const btn = document.getElementById('reveal-btn');
-  btn.textContent = isRevealed ? '隠す' : '条文を表示';
-  btn.classList.toggle('revealed', isRevealed);
+function revealNext() {
+  const paragraphs = getParagraphs(selectedArticles[currentIndex]);
+  if (revealedCount < paragraphs.length) {
+    revealedCount++;
+    renderArticle();
+  }
 }
 
 function navigate(dir) {
   const next = currentIndex + dir;
   if (next < 0 || next >= selectedArticles.length) return;
   currentIndex = next;
-  showArticle(selectedArticles[currentIndex]);
+  revealedCount = 0;
+  renderArticle();
 }
 
 buildSidebar();

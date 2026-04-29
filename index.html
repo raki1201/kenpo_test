@@ -100,20 +100,24 @@
     .article-number { font-size: 1rem; color: #1a3a5c; font-weight: bold; letter-spacing: 0.05em; margin-bottom: 16px; }
     .progress { font-size: 0.82rem; color: #888; text-align: center; margin-bottom: 14px; }
 
-    .hidden-text {
-      background: #2c2c2c; color: #2c2c2c; border-radius: 6px;
-      line-height: 2.3; font-size: 1rem; padding: 16px; margin-bottom: 20px;
-      user-select: none; -webkit-user-select: none;
+    .text-area { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .para-block {
+      border-radius: 6px; line-height: 2.2; font-size: 1rem; padding: 12px 14px;
       transition: color 0.3s, background 0.3s;
     }
-    .hidden-text.revealed { background: transparent; color: #2c2c2c; }
+    .para-hidden {
+      background: #2c2c2c; color: #2c2c2c;
+      user-select: none; -webkit-user-select: none;
+    }
+    .para-revealed { background: #f5f3ee; color: #2c2c2c; }
 
     .reveal-btn {
       display: block; width: 100%; padding: 15px;
       background: #1a3a5c; color: white; border: none; border-radius: 8px;
       font-size: 1rem; cursor: pointer; font-family: inherit; letter-spacing: 0.05em;
+      margin-bottom: 0;
     }
-    .reveal-btn.revealed { background: #888; }
+    .reveal-btn--done { background: #aaa; cursor: default; }
 
     .nav-btns { display: flex; gap: 12px; margin-top: 16px; }
     .nav-btn {
