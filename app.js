@@ -2,6 +2,16 @@ let selectedArticles = [];
 let currentIndex = 0;
 let isRevealed = false;
 
+// サイドバー開閉（モバイル用）
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
 function buildSidebar() {
   const list = document.getElementById('chapter-list');
   list.innerHTML = '';
@@ -24,32 +34,28 @@ function buildSidebar() {
         ? '前文'
         : `第${articleId}条${article && article.title ? '　' + article.title : ''}`;
 
-      const row = document.createElement('label');
-      row.className = 'article-btn';
-      row.dataset.id = articleId;
-      row.style.display = 'flex';
-      row.style.alignItems = 'center';
-      row.style.gap = '8px';
+      const btn = document.createElement('button');
+      btn.className = 'article-btn';
+      btn.dataset.id = String(articleId);
 
       const cb = document.createElement('input');
       cb.type = 'checkbox';
-      cb.dataset.id = articleId;
+      cb.dataset.id = String(articleId);
       cb.addEventListener('change', updateSelection);
+      cb.addEventListener('click', e => e.stopPropagation());
 
       const span = document.createElement('span');
       span.textContent = label;
-      span.style.cursor = 'pointer';
-      span.addEventListener('click', (e) => {
-        e.preventDefault();
-        selectedArticles = [String(articleId)];
-        currentIndex = 0;
-        showArticle(articleId);
-        highlightActive(articleId);
+
+      btn.appendChild(cb);
+      btn.appendChild(span);
+
+      btn.addEventListener('click', () => {
+        cb.checked = !cb.checked;
+        updateSelection();
       });
 
-      row.appendChild(cb);
-      row.appendChild(span);
-      articleList.appendChild(row);
+      articleList.appendChild(btn);
     });
 
     section.appendChild(articleList);
@@ -78,13 +84,8 @@ function clearAll() {
 function startPractice() {
   if (selectedArticles.length === 0) return;
   currentIndex = 0;
+  closeSidebar();
   showArticle(selectedArticles[currentIndex]);
-}
-
-function highlightActive(articleId) {
-  document.querySelectorAll('.article-btn').forEach(btn => btn.classList.remove('active'));
-  const target = document.querySelector(`.article-btn[data-id="${articleId}"]`);
-  if (target) target.classList.add('active');
 }
 
 function showArticle(articleId) {
@@ -93,15 +94,20 @@ function showArticle(articleId) {
   const main = document.getElementById('main');
 
   if (!article) {
-    main.innerHTML = '<div class="empty-state">条文データがまだ追加されていません</div>';
+    main.innerHTML = '<div class="empty-state">条文データがありません</div>';
     return;
   }
 
+  // アクティブ表示
+  document.querySelectorAll('.article-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.querySelector(`.article-btn[data-id="${articleId}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
   const total = selectedArticles.length;
   const current = currentIndex + 1;
-
-  let titleText = articleId === 'preamble' ? '前文' : `第${articleId}条`;
-  if (article.title) titleText += `　${article.title}`;
+  const titleText = articleId === 'preamble'
+    ? '前文'
+    : `第${articleId}条${article.title ? '　' + article.title : ''}`;
 
   const paragraphs = Array.isArray(article.text) ? article.text : [article.text];
   const textHtml = paragraphs.map(p => `<p style="margin-bottom:1em;line-height:2.2;">${p}</p>`).join('');
@@ -109,34 +115,28 @@ function showArticle(articleId) {
   main.innerHTML = `
     <div class="practice-card">
       ${total > 1 ? `<div class="progress">${current} / ${total}</div>` : ''}
-      <div class="article-header">
-        <div class="article-number">${titleText}</div>
-      </div>
+      <div class="article-number">${titleText}</div>
       <div class="text-area">
         <div class="hidden-text" id="article-text">${textHtml}</div>
       </div>
       <button class="reveal-btn" id="reveal-btn" onclick="toggleReveal()">条文を表示</button>
       <div class="nav-btns">
         <button class="nav-btn" onclick="navigate(-1)" ${currentIndex === 0 ? 'disabled' : ''}>← 前の条文</button>
-        <button class="nav-btn" onclick="navigate(1)" ${currentIndex >= selectedArticles.length - 1 ? 'disabled' : ''}>次の条文 →</button>
+        <button class="nav-btn" onclick="navigate(1)" ${currentIndex >= total - 1 ? 'disabled' : ''}>次の条文 →</button>
       </div>
     </div>
   `;
+
+  // ページ先頭へ
+  main.scrollTo(0, 0);
 }
 
 function toggleReveal() {
   isRevealed = !isRevealed;
-  const text = document.getElementById('article-text');
+  document.getElementById('article-text').classList.toggle('revealed', isRevealed);
   const btn = document.getElementById('reveal-btn');
-  if (isRevealed) {
-    text.classList.add('revealed');
-    btn.textContent = '隠す';
-    btn.classList.add('revealed');
-  } else {
-    text.classList.remove('revealed');
-    btn.textContent = '条文を表示';
-    btn.classList.remove('revealed');
-  }
+  btn.textContent = isRevealed ? '隠す' : '条文を表示';
+  btn.classList.toggle('revealed', isRevealed);
 }
 
 function navigate(dir) {
