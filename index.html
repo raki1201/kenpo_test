@@ -8,87 +8,121 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; background: #faf8f3; color: #2c2c2c; }
 
+    /* ヘッダー */
     header {
       background: #1a3a5c; color: white;
-      padding: 14px 16px;
-      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      height: 52px;
+      display: flex; align-items: center; gap: 14px;
       position: sticky; top: 0; z-index: 100;
     }
-    header h1 { font-size: 1.1rem; font-weight: normal; letter-spacing: 0.1em; }
     #menu-btn {
       background: none; border: none; color: white;
-      font-size: 1.5rem; cursor: pointer; padding: 4px 8px; line-height: 1;
-      display: none;
+      font-size: 1.5rem; cursor: pointer;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; flex-shrink: 0;
     }
+    #menu-btn:hover { background: rgba(255,255,255,0.15); }
+    header h1 { font-size: 1.05rem; font-weight: normal; letter-spacing: 0.1em; }
 
-    .container { display: flex; height: calc(100vh - 52px); }
+    /* オーバーレイ */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 150;
+    }
+    .overlay.open { display: block; }
 
-    /* サイドバー */
+    /* サイドバー（常にドロワー） */
     .sidebar {
-      width: 280px; background: #fff;
-      border-right: 1px solid #ddd;
+      position: fixed; top: 0; left: -100%; bottom: 0;
+      width: 85%; max-width: 320px;
+      background: #fff; z-index: 200;
+      transition: left 0.25s ease;
       display: flex; flex-direction: column;
-      flex-shrink: 0;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.2);
     }
+    .sidebar.open { left: 0; }
+
+    .sidebar-header {
+      background: #1a3a5c; color: white;
+      height: 52px; display: flex; align-items: center;
+      padding: 0 16px; gap: 12px; flex-shrink: 0;
+    }
+    #close-btn {
+      background: none; border: none; color: white;
+      font-size: 1.3rem; cursor: pointer;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 5px;
+    }
+    #close-btn:hover { background: rgba(255,255,255,0.15); }
+    .sidebar-header span { font-size: 0.9rem; letter-spacing: 0.05em; }
+
     .sidebar-scroll { flex: 1; overflow-y: auto; }
+
     .sidebar-footer {
-      padding: 12px 16px 16px; border-top: 1px solid #eee; background: #f5f5f5;
+      padding: 14px 16px 20px; border-top: 1px solid #ddd;
+      background: #f5f5f5; flex-shrink: 0;
     }
     .multi-controls { display: flex; gap: 8px; margin-bottom: 10px; }
     .multi-controls button {
-      flex: 1; padding: 7px 0; font-size: 0.82rem;
-      border: 1px solid #bbb; background: white; border-radius: 5px;
+      flex: 1; padding: 9px 0; font-size: 0.85rem;
+      border: 1px solid #bbb; background: white; border-radius: 6px;
       cursor: pointer; font-family: inherit;
     }
     .multi-controls button:hover { background: #eef4fb; }
     .start-btn {
       display: block; width: 100%;
-      padding: 14px; background: #1a3a5c; color: white; border: none;
-      border-radius: 7px; font-size: 1rem; cursor: pointer;
-      font-family: inherit; letter-spacing: 0.08em;
+      padding: 15px; background: #1a3a5c; color: white; border: none;
+      border-radius: 8px; font-size: 1rem; cursor: pointer;
+      font-family: inherit; letter-spacing: 0.1em;
     }
-    .start-btn:hover { background: #24527a; }
+    .start-btn:hover:not(:disabled) { background: #24527a; }
     .start-btn:disabled { background: #aaa; cursor: default; }
 
+    /* 条文リスト */
     .sidebar-section { border-bottom: 1px solid #eee; }
     .sidebar-section-title {
       padding: 10px 16px; font-size: 0.78rem; color: #666;
       background: #f5f5f5; letter-spacing: 0.05em; font-weight: bold;
     }
-    .article-list { padding: 4px 0; }
     .article-btn {
       display: flex; align-items: center; gap: 10px;
-      width: 100%; padding: 9px 16px;
+      width: 100%; padding: 11px 16px;
       background: none; border: none; cursor: pointer;
-      font-size: 0.83rem; color: #444; font-family: inherit; text-align: left;
+      font-size: 0.85rem; color: #444; font-family: inherit; text-align: left;
     }
     .article-btn:hover { background: #eef4fb; }
-    .article-btn.active { background: #eef4fb; color: #1a3a5c; font-weight: bold; }
-    .article-btn input[type=checkbox] { flex-shrink: 0; width: 17px; height: 17px; cursor: pointer; }
+    .article-btn.active { background: #e8f0f9; color: #1a3a5c; font-weight: bold; }
+    .article-btn input[type=checkbox] { flex-shrink: 0; width: 18px; height: 18px; cursor: pointer; }
 
     /* メイン */
-    .main { flex: 1; overflow-y: auto; padding: 28px 20px; }
-    .empty-state { color: #999; text-align: center; margin-top: 100px; font-size: 1rem; line-height: 2; }
+    .main { min-height: calc(100vh - 52px); padding: 32px 16px; }
+    .empty-state { color: #999; text-align: center; margin-top: 120px; font-size: 1rem; line-height: 3; }
 
     .practice-card {
       max-width: 680px; margin: 0 auto; background: white;
-      border: 1px solid #ddd; border-radius: 10px; padding: 28px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      border: 1px solid #ddd; border-radius: 10px; padding: 28px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
     }
-    .article-number { font-size: 1rem; color: #1a3a5c; font-weight: bold; letter-spacing: 0.05em; margin-bottom: 16px; }
+    .article-number {
+      font-size: 1rem; color: #1a3a5c; font-weight: bold;
+      letter-spacing: 0.05em; margin-bottom: 18px;
+    }
+    .progress { font-size: 0.82rem; color: #888; text-align: center; margin-bottom: 14px; }
 
-    .text-area { margin: 16px 0 20px; }
     .hidden-text {
       background: #2c2c2c; color: #2c2c2c; border-radius: 6px;
-      line-height: 2.2; font-size: 1rem; padding: 16px;
-      user-select: none; cursor: default;
+      line-height: 2.3; font-size: 1rem; padding: 16px;
+      user-select: none; margin-bottom: 20px;
       transition: color 0.35s ease, background 0.35s ease;
     }
     .hidden-text.revealed { background: transparent; color: #2c2c2c; }
 
     .reveal-btn {
-      display: block; width: 100%; padding: 14px;
-      background: #1a3a5c; color: white; border: none; border-radius: 7px;
+      display: block; width: 100%; padding: 15px;
+      background: #1a3a5c; color: white; border: none; border-radius: 8px;
       font-size: 1rem; cursor: pointer; font-family: inherit; letter-spacing: 0.05em;
     }
     .reveal-btn:hover { background: #24527a; }
@@ -96,69 +130,49 @@
 
     .nav-btns { display: flex; gap: 12px; margin-top: 16px; }
     .nav-btn {
-      flex: 1; padding: 11px; background: #f0f0f0; border: 1px solid #ccc;
-      border-radius: 7px; cursor: pointer; font-family: inherit; font-size: 0.9rem;
+      flex: 1; padding: 12px; background: #f0f0f0; border: 1px solid #ccc;
+      border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.9rem;
     }
-    .nav-btn:hover { background: #e0e0e0; }
+    .nav-btn:hover:not(:disabled) { background: #e0e0e0; }
     .nav-btn:disabled { opacity: 0.35; cursor: default; }
 
-    .progress { font-size: 0.82rem; color: #888; text-align: center; margin-bottom: 14px; }
-
-    /* オーバーレイ（モバイル用） */
-    .overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.45); z-index: 150;
-    }
-    .overlay.open { display: block; }
-
-    /* モバイル */
-    @media (max-width: 640px) {
-      header { padding: 12px 14px; }
-      header h1 { font-size: 1rem; }
-      #menu-btn { display: block; }
-
-      .sidebar {
-        position: fixed; top: 0; left: -100%; bottom: 0;
-        width: 82%; max-width: 300px;
-        z-index: 200; transition: left 0.24s ease;
-        box-shadow: 4px 0 20px rgba(0,0,0,0.25);
-      }
-      .sidebar.open { left: 0; }
-
-      .container { height: calc(100vh - 48px); }
-      .main { padding: 16px 12px; }
-
-      .practice-card { padding: 18px 14px; border-radius: 8px; }
-      .hidden-text { font-size: 0.95rem; padding: 14px; }
-      .reveal-btn { padding: 15px; font-size: 1rem; }
+    /* スマホ微調整 */
+    @media (max-width: 480px) {
+      .practice-card { padding: 18px 14px; }
+      .hidden-text { font-size: 0.95rem; }
+      .main { padding: 20px 12px; }
     }
   </style>
 </head>
 <body>
 
 <header>
+  <button id="menu-btn" onclick="toggleSidebar()" title="条文を選ぶ">☰</button>
   <h1>日本国憲法 暗記ツール</h1>
-  <button id="menu-btn" onclick="toggleSidebar()">☰</button>
 </header>
 
 <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
-<div class="container">
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-scroll">
-      <div id="chapter-list"></div>
-    </div>
-    <div class="sidebar-footer">
-      <div class="multi-controls">
-        <button onclick="selectAll()">全選択</button>
-        <button onclick="clearAll()">解除</button>
-      </div>
-      <button id="start-btn" class="start-btn" onclick="startPractice()" disabled>練習開始</button>
-    </div>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <button id="close-btn" onclick="closeSidebar()">✕</button>
+    <span>条文を選択</span>
   </div>
+  <div class="sidebar-scroll">
+    <div id="chapter-list"></div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="multi-controls">
+      <button onclick="selectAll()">全選択</button>
+      <button onclick="clearAll()">解除</button>
+    </div>
+    <button id="start-btn" class="start-btn" onclick="startPractice()" disabled>練習開始</button>
+  </div>
+</div>
 
-  <div class="main" id="main">
-    <div class="empty-state">☰ メニューから条文を選んで<br>練習を開始してください</div>
+<div class="main" id="main">
+  <div class="empty-state">
+    ☰ を押して条文を選び<br>練習を開始してください
   </div>
 </div>
 
